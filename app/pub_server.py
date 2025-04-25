@@ -13,5 +13,9 @@ def handle_request(request_buffer: bytes):
     if request_type == RequestType.Get:
         if request_path == "/":
             return build_response(ResponseStatus.OK, ContentType.TextPlain)
+        
+        if request_path.startswith("/echo/"):
+            content = request_path.replace("/echo/", "")
+            return build_response(ResponseStatus.OK, ContentType.TextPlain, body=content)
 
     return build_response(ResponseStatus.NOT_FOUND, ContentType.TextPlain)
