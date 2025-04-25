@@ -11,11 +11,16 @@ def handle_request(request_buffer: bytes):
     request_version = request_version.split("/")[-1]
 
     request_headers = {}
+    index = 1
     for line in request_lines[1:]:
         if line.find(": ") == -1:
             break
         key, value = line.split(": ", 1)
-        request_headers[key.lower()] = value
+        request_headers[key.lower()] = value.strip()
+        index += 1
+
+    if index < len(request_lines):
+        request_body = "\n".join(request_lines[index:]).strip().encode()
 
     print(request_type.to_string(), request_path, request_version, sep="|")
 
@@ -78,19 +83,12 @@ def handle_request(request_buffer: bytes):
         if request_path.startswith("/files/"):
             filename = request_path[7:]
             file_path = os.path.join(base_dir, filename)
-            if os.path.exists(file_path):
-                with open(file_path, "wb") as f:
-                    f.write(request_buffer)
-                    return build_response(
-                        ResponseStatus.CREATED,
-                        ContentType.ApplicationOctetStream,
-                        headers=request_headers,
-                        version=request_version,
-                    )
-            else:
+            with open(file_path, "wb") as f:
+                f.write(request_body)
                 return build_response(
-                    ResponseStatus.NOT_FOUND,
-                    ContentType.TextPlain,
+                    ResponseStatus.CREATED,
+                    ContentType.ApplicationOctetStream,
+                    headers=request_headers,
                     version=request_version,
                 )
 
