@@ -1,4 +1,6 @@
 import socket  # noqa: F401
+import os
+from argparse import ArgumentParser
 from .pub_server import handle_request
 
 def main():
@@ -18,4 +20,11 @@ def main():
         server_socket.close()
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--directory", help="directory to serve", default=".")
+    args = parser.parse_args()
+
+    if args.directory:
+        os.environ["BASE_DIR"] = args.directory
+
     main()

@@ -23,15 +23,11 @@ class ContentType(Enum):
 
 
 class RequestType(Enum):
-    Get = "GET"
-    Post = "POST"
+    GET = "GET"
+    POST = "POST"
 
     def to_string(self) -> str:
         return self.value
-
-    # @staticmethod
-    # def from_string(request_type: str):
-    #     return RequestType(request_type.upper())
 
 
 def build_response(
