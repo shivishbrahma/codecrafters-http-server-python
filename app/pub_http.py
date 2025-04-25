@@ -1,3 +1,4 @@
+from typing import Union
 from enum import Enum
 import gzip
 
@@ -34,7 +35,7 @@ def build_response(
     status: ResponseStatus,
     content_type: ContentType,
     headers: dict = {},
-    body: str = "",
+    body: bytes = bytes(),
     version="1.1",
 ) -> bytes:
     resp_headers = {}
@@ -44,7 +45,7 @@ def build_response(
     if "connection" in headers.keys():
         resp_headers["Connection"] = headers["connection"]
 
-    content = body.strip().encode()
+    content = body
     if "accept-encoding" in headers.keys():
         if "gzip" in headers["accept-encoding"]:
             content = gzip.compress(content)

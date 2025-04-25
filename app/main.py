@@ -41,5 +41,6 @@ if __name__ == "__main__":
 
     if args.directory:
         os.environ["BASE_DIR"] = args.directory
+        print(f"Serving directory {args.directory}")
 
     main()

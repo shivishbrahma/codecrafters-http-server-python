@@ -29,7 +29,7 @@ def handle_request(request_buffer: bytes):
             )
 
         if request_path.startswith("/echo/"):
-            content = request_path.replace("/echo/", "")
+            content = request_path.replace("/echo/", "").encode()
             return build_response(
                 ResponseStatus.OK,
                 ContentType.TextPlain,
@@ -39,7 +39,7 @@ def handle_request(request_buffer: bytes):
             )
 
         if request_path == "/user-agent":
-            content = request_headers.get("user-agent")
+            content = request_headers.get("user-agent").encode()
             return build_response(
                 ResponseStatus.OK,
                 ContentType.TextPlain,
@@ -48,7 +48,7 @@ def handle_request(request_buffer: bytes):
                 version=request_version,
             )
 
-        if request_path == "/files/":
+        if request_path.startswith("/files/"):
             filename = request_path[7:]
             file_path = os.path.join(base_dir, filename)
             if os.path.exists(file_path):
@@ -75,7 +75,7 @@ def handle_request(request_buffer: bytes):
         )
 
     if request_type == RequestType.POST:
-        if request_path == "/files/":
+        if request_path.startswith("/files/"):
             filename = request_path[7:]
             file_path = os.path.join(base_dir, filename)
             if os.path.exists(file_path):
