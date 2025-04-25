@@ -60,4 +60,5 @@ def build_response(
     resp_buff.extend(CLRF.encode())
     resp_buff.extend(content)
 
+    print("Response: ", resp_buff.decode())
     return resp_buff

@@ -5,27 +5,33 @@ from argparse import ArgumentParser
 from .pub_server import handle_request
 
 
-def server_run(client_socket: socket.socket):
-    while True:
-        req_buff = client_socket.recv(1024)
-        if req_buff is None:
-            break
-        client_socket.sendall(handle_request(req_buff))
+def send_request(client_socket: socket.socket, addr):
+    req_buff = client_socket.recv(1024)
+    print(f"Received request from {addr}")
+    print(req_buff.decode("utf-8"))
+    if req_buff is None or len(req_buff) == 0:
+        print("Client closed connection")
+        client_socket.close()
 
-        break
+    client_socket.send(handle_request(req_buff))
+    client_socket.close()
+
+
+def start_server(server_socket: socket.socket):
+    client_socket = None
+    while True:
+        client_socket, addr = server_socket.accept()  # wait for client
+        print(f"Connected to {addr}")
+        threading.Thread(target=send_request, args=(client_socket, addr)).start()
 
 
 def main():
     server_socket = socket.create_server(("localhost", 4221), reuse_port=True)
     print(f"Server started on {server_socket.getsockname()}")
-    client_socket, addr = server_socket.accept()  # wait for client
-
     try:
-        print(f"Connected to {addr}")
-        threading.Thread(target=server_run, args=(client_socket,))
-    finally:
-        client_socket.close()
-        server_socket.close()
+        start_server(server_socket)
+    except KeyboardInterrupt:
+        print("\nServer is shutting down...")
 
 
 if __name__ == "__main__":

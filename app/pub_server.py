@@ -1,12 +1,15 @@
 import os
 from .pub_http import build_response, RequestType, ResponseStatus, ContentType
 
+
 def handle_request(request_buffer: bytes):
     base_dir = os.getenv("BASE_DIR")
     request_lines = request_buffer.decode("utf-8").splitlines()
     print(request_lines)
     request_type, request_path, request_version = request_lines[0].split()
     request_type = RequestType(request_type.upper())
+    request_version = request_version.split("/")[-1]
+
     request_headers = {}
     for line in request_lines[1:]:
         if line.find(": ") == -1:
@@ -18,26 +21,87 @@ def handle_request(request_buffer: bytes):
 
     if request_type == RequestType.GET:
         if request_path == "/":
-            return build_response(ResponseStatus.OK, ContentType.TextPlain, headers=request_headers)
-        
+            return build_response(
+                ResponseStatus.OK,
+                ContentType.TextPlain,
+                headers=request_headers,
+                version=request_version,
+            )
+
         if request_path.startswith("/echo/"):
             content = request_path.replace("/echo/", "")
-            return build_response(ResponseStatus.OK, ContentType.TextPlain, body=content, headers=request_headers)
+            return build_response(
+                ResponseStatus.OK,
+                ContentType.TextPlain,
+                body=content,
+                headers=request_headers,
+                version=request_version,
+            )
 
         if request_path == "/user-agent":
             content = request_headers.get("user-agent")
-            return build_response(ResponseStatus.OK, ContentType.TextPlain, body=content, headers=request_headers)
-        
+            return build_response(
+                ResponseStatus.OK,
+                ContentType.TextPlain,
+                body=content,
+                headers=request_headers,
+                version=request_version,
+            )
+
         if request_path == "/files/":
             filename = request_path[7:]
             file_path = os.path.join(base_dir, filename)
             if os.path.exists(file_path):
                 with open(file_path, "rb") as f:
                     content = f.read()
-                    return build_response(ResponseStatus.OK, ContentType.ApplicationOctetStream, body=content, headers=request_headers)
+                    return build_response(
+                        ResponseStatus.OK,
+                        ContentType.ApplicationOctetStream,
+                        body=content,
+                        headers=request_headers,
+                        version=request_version,
+                    )
             else:
-                return build_response(ResponseStatus.NOT_FOUND, ContentType.TextPlain)
+                return build_response(
+                    ResponseStatus.NOT_FOUND,
+                    ContentType.TextPlain,
+                    version=request_version,
+                )
 
-        return build_response(ResponseStatus.NOT_FOUND, ContentType.TextPlain)
-    
-    return build_response(ResponseStatus.METHOD_NOT_ALLOWED, ContentType.TextPlain)
+        return build_response(
+            ResponseStatus.NOT_FOUND,
+            ContentType.TextPlain,
+            version=request_version,
+        )
+
+    if request_type == RequestType.POST:
+        if request_path == "/files/":
+            filename = request_path[7:]
+            file_path = os.path.join(base_dir, filename)
+            if os.path.exists(file_path):
+                with open(file_path, "wb") as f:
+                    f.write(request_buffer)
+                    return build_response(
+                        ResponseStatus.CREATED,
+                        ContentType.ApplicationOctetStream,
+                        headers=request_headers,
+                        version=request_version,
+                    )
+            else:
+                return build_response(
+                    ResponseStatus.NOT_FOUND,
+                    ContentType.TextPlain,
+                    version=request_version,
+                )
+
+        return build_response(
+            ResponseStatus.NOT_FOUND,
+            ContentType.TextPlain,
+            version=request_version,
+        )
+
+    return build_response(
+        ResponseStatus.METHOD_NOT_ALLOWED,
+        ContentType.TextPlain,
+        version=request_version,
+    )
