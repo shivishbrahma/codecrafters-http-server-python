@@ -47,6 +47,7 @@ def build_response(
 
     content = body
     if "accept-encoding" in headers.keys():
+        print(headers["accept-encoding"])
         if "gzip" in headers["accept-encoding"]:
             content = gzip.compress(content)
             resp_headers["Content-Encoding"] = "gzip"
@@ -61,5 +62,4 @@ def build_response(
     resp_buff.extend(CLRF.encode())
     resp_buff.extend(content)
 
-    print("Response: ", resp_buff.decode())
     return resp_buff

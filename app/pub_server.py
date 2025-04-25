@@ -19,6 +19,7 @@ def handle_request(request_buffer: bytes):
         request_headers[key.lower()] = value.strip()
         index += 1
 
+    request_body = bytes()
     if index < len(request_lines):
         request_body = "\n".join(request_lines[index:]).strip().encode()
 
